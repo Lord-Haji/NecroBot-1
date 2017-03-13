@@ -1,23 +1,14 @@
 ﻿using MahApps.Metro.Controls;
-using Microsoft.Win32;
-using PoGo.NecroBot.Logic.Model.Settings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using PoGo.NecroBot.Logic.Event;
 using PoGo.NecroBot.Logic.State;
 using PoGo.Necrobot.Window.Win32;
-using PoGo.NecroBot.Logic.Event.Player;
 using PoGo.Necrobot.Window.Model;
 using PoGo.NecroBot.Logic;
 using PoGo.NecroBot.Logic.Logging;
@@ -28,7 +19,9 @@ using System.ServiceModel.Syndication;
 using System.Net;
 using System.Xml;
 using System.IO;
-using System.Net.Http;
+using DotNetBrowser;
+using DotNetBrowser.WPF;
+using System.Reflection;
 
 namespace PoGo.Necrobot.Window
 {
@@ -37,6 +30,8 @@ namespace PoGo.Necrobot.Window
     /// </summary>
     public partial class MainClientWindow : MetroWindow
     {
+        BrowserView webView;
+
         public MainClientWindow()
         {
             InitializeComponent();
@@ -47,9 +42,21 @@ namespace PoGo.Necrobot.Window
             };
 
             this.DataContext = datacontext;
-            txtCmdInput.Text = TinyIoCContainer.Current.Resolve<UITranslation>().InputCommand; 
+            txtCmdInput.Text = TinyIoCContainer.Current.Resolve<UITranslation>().InputCommand;
+
+            webView = new WPFBrowserView(BrowserFactory.Create());
+            browserLayout.Children.Add((UIElement)webView.GetComponent());
+
+
+            string path = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            
+            string appDir = Path.GetDirectoryName(path);
+            var uri = new Uri(Path.Combine(appDir, @"PokeEase\index.html"));
+
+            webView.Browser.LoadURL(uri.ToString());
+
         }
-           
+
         private void Grid_Loaded(object sender, RoutedEventArgs e)
         {
 
@@ -202,7 +209,7 @@ namespace PoGo.Necrobot.Window
 
             if(e.Key == Key.Enter)
             {
-                Logger.Write(txtCmdInput.Text, LogLevel.Info, ConsoleColor.White);
+                NecroBot.Logic.Logging.Logger.Write(txtCmdInput.Text, LogLevel.Info, ConsoleColor.White);
                 txtCmdInput.Text = "";
             }
         }
