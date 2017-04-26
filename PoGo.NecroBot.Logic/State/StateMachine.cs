@@ -35,7 +35,7 @@ namespace PoGo.NecroBot.Logic.State
             _initialState = state;
         }
 
-        private void ReInitializeSession(ISession session, GlobalSettings globalSettings, BotAccount requestedAccount = null)
+        public void ReInitializeSession(ISession session, GlobalSettings globalSettings, BotAccount requestedAccount = null)
         {
             if (session.LogicSettings.MultipleBotConfig.StartFromDefaultLocation)
             {
@@ -58,12 +58,13 @@ namespace PoGo.NecroBot.Logic.State
             var profileConfigPath = Path.Combine(profilePath, "config");
             globalSettings = GlobalSettings.Load(subPath);
 
-            FileSystemWatcher configWatcher = new FileSystemWatcher();
-            configWatcher.Path = profileConfigPath;
-            configWatcher.Filter = "config.json";
-            configWatcher.NotifyFilter = NotifyFilters.LastWrite;
-            configWatcher.EnableRaisingEvents = true;
-
+            FileSystemWatcher configWatcher = new FileSystemWatcher()
+            {
+                Path = profileConfigPath,
+                Filter = "config.json",
+                NotifyFilter = NotifyFilters.LastWrite,
+                EnableRaisingEvents = true
+            };
             configWatcher.Changed += (sender, e) =>
             {
                 if (e.ChangeType == WatcherChangeTypes.Changed)

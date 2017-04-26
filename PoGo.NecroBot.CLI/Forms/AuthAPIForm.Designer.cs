@@ -49,7 +49,7 @@ namespace PoGo.NecroBot.CLI.Forms
             this.btnOK.TabIndex = 0;
             this.btnOK.Text = "OK";
             this.btnOK.UseVisualStyleBackColor = true;
-            this.btnOK.Click += new System.EventHandler(this.btnOK_Click);
+            this.btnOK.Click += new System.EventHandler(this.BtnOK_Click);
             // 
             // label1
             // 
@@ -64,6 +64,7 @@ namespace PoGo.NecroBot.CLI.Forms
             // 
             this.txtAPIKey.Location = new System.Drawing.Point(12, 115);
             this.txtAPIKey.Name = "txtAPIKey";
+            this.txtAPIKey.Text = "8C5A5T8B9P3A6L1S4K1A";
             this.txtAPIKey.Size = new System.Drawing.Size(228, 20);
             this.txtAPIKey.TabIndex = 2;
             // 
@@ -87,7 +88,7 @@ namespace PoGo.NecroBot.CLI.Forms
             this.lnkBuy.TabIndex = 4;
             this.lnkBuy.TabStop = true;
             this.lnkBuy.Text = "Buy";
-            this.lnkBuy.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkBuy_LinkClicked);
+            this.lnkBuy.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.LnkBuy_LinkClicked);
             // 
             // radHashServer
             // 
@@ -97,7 +98,7 @@ namespace PoGo.NecroBot.CLI.Forms
             this.radHashServer.Size = new System.Drawing.Size(225, 17);
             this.radHashServer.TabIndex = 5;
             this.radHashServer.TabStop = true;
-            this.radHashServer.Text = $"Pogodev hash server api - Latest API {Client.API_VERSION}";
+            this.radHashServer.Text = "PogoDev Hash Server API - Latest API " + Client.API_VERSION;
             this.radHashServer.UseVisualStyleBackColor = true;
             // 
             // label2
@@ -117,9 +118,7 @@ namespace PoGo.NecroBot.CLI.Forms
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(252, 52);
             this.label3.TabIndex = 7;
-            this.label3.Text = "We don\'t provide keys, you will have to buy it from Pogodev. RPM = Requests per minute," +
-    " it depends on how fast your config setup is.  150RPM will be sufficient for 2-" +
-    "3 normal bots. ";
+            this.label3.Text = "We don't provide keys, you will have to buy it from Pogodev. RPM = Requests per minute," + " it depends on how fast your config setup is. 150RPM will be sufficient for 2-" + "3 normal bots.";
             // 
             // btnCancel
             // 

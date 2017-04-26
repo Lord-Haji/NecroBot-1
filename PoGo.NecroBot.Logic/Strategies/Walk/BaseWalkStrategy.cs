@@ -9,7 +9,7 @@ using PoGo.NecroBot.Logic.Model;
 using PoGo.NecroBot.Logic.State;
 using PoGo.NecroBot.Logic.Utils;
 using PokemonGo.RocketAPI;
-using System.Device.Location;
+using GeoCoordinatePortable;
 
 namespace PoGo.NecroBot.Logic.Strategies.Walk
 {
@@ -22,7 +22,7 @@ namespace PoGo.NecroBot.Logic.Strategies.Walk
         protected double _minStepLengthInMeters = 1.3d;
         protected bool isCancelled = false;
         protected readonly Random _randWalking = new Random();
-        protected IWalkStrategy _fallbackStrategy;
+        //protected IWalkStrategy _fallbackStrategy;
 
         public event UpdatePositionDelegate UpdatePositionEvent;
 
@@ -40,7 +40,7 @@ namespace PoGo.NecroBot.Logic.Strategies.Walk
             var distance = calculatedDistance;
             if (distance == 0)
             {
-                distance = this.CalculateDistance(session.Client.CurrentLatitude, session.Client.CurrentLongitude,
+                distance = CalculateDistance(session.Client.CurrentLatitude, session.Client.CurrentLongitude,
                     desination.Latitude, desination.Longitude);
             }
 
@@ -51,7 +51,7 @@ namespace PoGo.NecroBot.Logic.Strategies.Walk
                 {
                     Name = desination.Name,
                     Distance = distance,
-                    Route = this.RouteName,
+                    Route = RouteName,
                     Type = fortLocation.FortData.Type
                 });
             }
@@ -89,7 +89,7 @@ namespace PoGo.NecroBot.Logic.Strategies.Walk
             CancellationToken cancellationToken, double walkSpeed = 0.0)
         {
             // If we need to fall-back, then blacklist current strategy for 1 hour.
-            session.Navigation.BlacklistStrategy(this.GetType());
+            session.Navigation.BlacklistStrategy(GetType());
 
             IWalkStrategy nextStrategy = session.Navigation.GetStrategy(logicSettings);
 

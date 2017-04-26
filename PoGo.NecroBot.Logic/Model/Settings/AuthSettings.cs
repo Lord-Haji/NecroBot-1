@@ -19,6 +19,8 @@ using PoGo.NecroBot.Logic.Logging;
 using PokemonGo.RocketAPI.Extensions;
 using PokemonGo.RocketAPI.Helpers;
 using System.Net.Http;
+using POGOProtos.Networking.Envelopes;
+using static POGOProtos.Networking.Envelopes.Signature.Types;
 
 #endregion
 
@@ -33,13 +35,9 @@ namespace PoGo.NecroBot.Logic.Model.Settings
         [JsonIgnore]
         private string _filePath;
 
-        // Deprecated and will be removed in future release.
-        [JsonProperty(Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore, Order = 1)]
-        public AuthConfig AuthConfig = null;
-
         [JsonProperty(Required = Required.Default, DefaultValueHandling = DefaultValueHandling.Ignore, Order = 1)]
         public List<AuthConfig> Bots = new List<AuthConfig>();
-        
+
         [JsonIgnore]
         private AuthConfig _currentAuthConfig;
 
@@ -64,7 +62,7 @@ namespace PoGo.NecroBot.Logic.Model.Settings
                 _currentAuthConfig = value;
             }
         }
-        
+
         [JsonProperty(Required = Required.DisallowNull, DefaultValueHandling = DefaultValueHandling.Ignore, Order = 2)]
         public ProxyConfig ProxyConfig = new ProxyConfig();
         [JsonProperty(Required = Required.DisallowNull, DefaultValueHandling = DefaultValueHandling.Ignore, Order = 3)]
@@ -72,7 +70,7 @@ namespace PoGo.NecroBot.Logic.Model.Settings
 
         [JsonProperty(Required = Required.DisallowNull, DefaultValueHandling = DefaultValueHandling.Ignore, Order = 3)]
         public APIConfig APIConfig = new APIConfig();
-        
+
         private JSchema _schema;
 
         private JSchema JsonSchema
@@ -98,7 +96,7 @@ namespace PoGo.NecroBot.Logic.Model.Settings
                     SchemaReferenceHandling = SchemaReferenceHandling.None
                 };
                 // change Zone enum to generate a string property
-                var strEnumGen = new StringEnumGenerationProvider {CamelCaseText = true};
+                var strEnumGen = new StringEnumGenerationProvider { CamelCaseText = true };
                 generator.GenerationProviders.Add(strEnumGen);
                 // generate json schema 
                 var type = typeof(AuthSettings);
@@ -132,7 +130,7 @@ namespace PoGo.NecroBot.Logic.Model.Settings
         //    }
         //}
 
-        
+
         public AuthSettings()
         {
             InitializePropertyDefaultValues(this);
@@ -182,11 +180,11 @@ namespace PoGo.NecroBot.Logic.Model.Settings
                     {
                         var jsonObj = JObject.Parse(input);
 
-                        // Migrate before validation.
+                        // Migrate before Validating.
                         MigrateSettings(schemaVersion, jsonObj, configFile, schemaFile);
 
-                        // validate Json using JsonSchema
-                        Logger.Write("Validating auth.json...");
+                        // Validate Json using JsonSchema
+                        Logger.Write("Validating Auth.json...");
                         IList<ValidationError> errors = null;
                         bool valid;
                         try
@@ -219,7 +217,7 @@ namespace PoGo.NecroBot.Logic.Model.Settings
                                 }
                             }
 
-                            Logger.Write("Fix auth.json and restart NecroBot or press a key to ignore and continue...",
+                            Logger.Write("Fix your auth.json and restart NecroBot or press any key to ignore and continue...",
                                 LogLevel.Warning);
                             Console.ReadKey();
                         }
@@ -229,7 +227,7 @@ namespace PoGo.NecroBot.Logic.Model.Settings
                     }
 
                     var settings = new JsonSerializerSettings();
-                    settings.Converters.Add(new StringEnumConverter {CamelCaseText = true});
+                    settings.Converters.Add(new StringEnumConverter { CamelCaseText = true });
                     JsonConvert.PopulateObject(input, this, settings);
                 }
                 // Do some post-load logic to determine what device info to be using - if 'custom' is set we just take what's in the file without question
@@ -240,7 +238,12 @@ namespace PoGo.NecroBot.Logic.Model.Settings
                     {
                         var randomAppleDeviceInfo = DeviceInfoHelper.GetRandomIosDevice();
                         SetDevInfoByDeviceInfo(randomAppleDeviceInfo);
-
+                        // Clearing Android variables, as they come back "" instead of null
+                        DeviceConfig.AndroidBoardName = null;
+                        DeviceConfig.AndroidBootloader = null;
+                        DeviceConfig.DeviceModelIdentifier = null;
+                        DeviceConfig.FirmwareTags = null;
+                        DeviceConfig.FirmwareFingerprint = null;
                         // After generating iOS settings, automatically set the package name to "custom", so that we don't regenerate settings every time we start.
                         DeviceConfig.DevicePackageName = "custom";
                     }
@@ -314,7 +317,7 @@ namespace PoGo.NecroBot.Logic.Model.Settings
                 Logger.Write("Auth Configuration is up-to-date. Schema version: " + schemaVersion);
                 return;
             }
-            
+
             // Backup old config file.
             long ts = DateTime.UtcNow.ToUnixTime(); // Add timestamp to avoid file conflicts
             string backupPath = configFile.Replace(".json", $"-{schemaVersion}-{ts}.backup.json");
@@ -432,7 +435,7 @@ namespace PoGo.NecroBot.Logic.Model.Settings
                         settings.Remove("AllowMultipleBot");
                         break;
 
-                    // Add more here.
+                        // Add more here.
                 }
             }
         }
@@ -443,7 +446,7 @@ namespace PoGo.NecroBot.Logic.Model.Settings
             {
                 DefaultValueHandling = DefaultValueHandling.Include,
                 Formatting = Formatting.Indented,
-                Converters = new JsonConverter[] {new StringEnumConverter {CamelCaseText = true}}
+                Converters = new JsonConverter[] { new StringEnumConverter { CamelCaseText = true } }
             };
             var output = JsonConvert.SerializeObject(this, jsonSerializeSettings);
 
@@ -474,7 +477,7 @@ namespace PoGo.NecroBot.Logic.Model.Settings
                     error.Message, LogLevel.Error);
             }
             Logger.Write(
-                "Fix auth.json and restart NecroBot or press a key to ignore and continue...",
+                "Fix auth.json and restart NecroBot or press any key to ignore and continue...",
                 LogLevel.Warning
             );
             Console.ReadKey();
@@ -510,7 +513,7 @@ namespace PoGo.NecroBot.Logic.Model.Settings
                     var responseContent = client.GetAsync("https://api.ipify.org/?format=text").Result;
                     var proxiedIPres = responseContent.Content.ReadAsStringAsync().Result;
 
-                    var proxiedIp = proxiedIPres == null ? "INVALID PROXY" : proxiedIPres;
+                    var proxiedIp = proxiedIPres ?? "INVALID PROXY";
                     Logger.Write(translator.GetTranslation(TranslationString.Proxied, unproxiedIp, proxiedIp),
                         LogLevel.Info, unproxiedIp == proxiedIp ? ConsoleColor.Red : ConsoleColor.Green);
 
@@ -563,7 +566,7 @@ namespace PoGo.NecroBot.Logic.Model.Settings
             else
             {
                 throw new ArgumentException(
-                    "Invalid device info package! Check your auth.config file and make sure a valid DevicePackageName is set. For simple use set it to 'random'. If you have a custom device, then set it to 'custom'.");
+                    "Invalid Device Info package! Check Auth.json file and make sure a valid Device Package Name is set. For simple use set it to 'random'. If you have a custom device, then set it to 'custom'.");
             }
         }
 

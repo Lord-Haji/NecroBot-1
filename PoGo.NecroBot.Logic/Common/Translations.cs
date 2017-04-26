@@ -376,7 +376,7 @@ namespace PoGo.NecroBot.Logic.Common
 
                 //Logging Cleanup (mostly uneccessary information, may want a verbose pokemon capture logger setting)
                 new KeyValuePair<TranslationString, string>(TranslationString.EventPokemonCaptureSuccess,
-                    "({0}) | ({1}) {2} Lvl: {3} CP: ({4}/{5}) IV: {6}% | Chance: {7}% | {8}m dist | with a {9} ({10} left). | {11} EXP earned | {12} | lat: {13} long: {14} | Move1: {15} Move2: {16} | Rarity: {17} | Capture Reason: {18} | Sex: {19}"),
+                    "({0}) | ({1}) {2} Lvl: {3} CP: ({4}/{5}) IV: {6}% | Chance: {7}% | {8}m dist | with a {9} ({10} left). | {11} EXP earned | {12} | lat: {13} long: {14} | Move1: {15} Move2: {16} | Rarity: {17} | Capture Reason: {18} | Shiny: {19} | Form: {20} | Costume: {21} |  Sex: {22}"),
                 new KeyValuePair<TranslationString, string>(TranslationString.EventPokemonCaptureFailed,
                     "({0}) | ({1}) {2} Lvl: {3} CP: ({4}/{5}) IV: {6}% | Chance: {7}% | {8}m dist | with a {9} ({10} left). | lat: {11} long: {12} | Move1: {13} Move2: {14} | Rarity :{15}"),
 
@@ -754,7 +754,7 @@ namespace PoGo.NecroBot.Logic.Common
                 new KeyValuePair<TranslationString, string>(TranslationString.Only10kmEggs,
                     "Player below level 20, saving this 10 km Egg for later"),
                 new KeyValuePair<TranslationString, string>(TranslationString.AutoSnipeDisabled,
-                    "Your are out of ball because snipe so fast, you can reduce snipe speed by update MinIVForAutoSnipe or SnipePokemonFilters, Auto snipe will be disable in {0} mins"),
+                    "Your are out of PokeBalls because of sniping pretty fast, you can reduce sniping speed by updating MinIVForAutoSnipe or SnipePokemonFilters, Auto snipe will be disabled in {0} mins"),
                 new KeyValuePair<TranslationString, string>(TranslationString.SniperCount, "Sniper count {0}"),
                 new KeyValuePair<TranslationString, string>(TranslationString.SnipeExceeds,
                     "Sniper needs to take a rest before your account is banned"),

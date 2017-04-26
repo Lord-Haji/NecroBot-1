@@ -4,6 +4,7 @@
                       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                       xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+		      xmlns:wpf="clr-namespace:DotNetBrowser.WPF;assembly=DotNetBrowser"
                       xmlns:local="clr-namespace:PoGo.Necrobot.Window.Controls"
                       xmlns:c="clr-namespace:PoGo.Necrobot.Window.Converters"
                       Title="Necrobot 2 - Window GUI"
@@ -15,7 +16,7 @@
                       ResizeMode="CanResizeWithGrip"
                       WindowTransitionsEnabled="False"
                       WindowStartupLocation="CenterScreen" 
-                      Loaded="MetroWindow_Loaded" Initialized="MetroWindow_Initialized">
+                      Loaded="MetroWindow_Loaded" Initialized="MetroWindow_Initialized" Closing="MetroWindow_Closing">
     <Controls:MetroWindow.TitleTemplate>
         <DataTemplate>
             <TextBlock x:Name="TitleText"
@@ -37,7 +38,6 @@
             Value="pack://application:,,,/Resources/#Lato-light" />
         </Style>
     </Control.Resources>
-
     <Controls:MetroWindow.RightWindowCommands>
         <Controls:WindowCommands>
             <Button Click="Help_Click">
@@ -49,22 +49,13 @@
                             <VisualBrush Stretch="Fill" Visual="{DynamicResource appbar_book_perspective_help}" />
                         </Rectangle.OpacityMask>
                     </Rectangle>
-                    <TextBlock Margin="4 0 0 0"
-                               VerticalAlignment="Center"
-                               Text="{Binding Source=Help, Converter={StaticResource ResourceKey=I18NConveter}}" />
-
-                    <Popup Margin="10,10,0,13" Name="popHelpArticles"
-                           HorizontalAlignment="Left"
-                           VerticalAlignment="Top"
-                           
-                           StaysOpen="False"
-                           Width="420" Height="580" IsOpen="False" AllowsTransparency="True">
+                    <TextBlock Margin="4 0 0 0" VerticalAlignment="Center" Text="{Binding Source=Help, Converter={StaticResource ResourceKey=I18NConveter}}" />
+                    <Popup Margin="10,10,0,13" Name="popHelpArticles" HorizontalAlignment="Left" VerticalAlignment="Top" StaysOpen="False" Width="420" Height="580" IsOpen="False" AllowsTransparency="True">
                         <Grid Background="WhiteSmoke">
                             <ListView Name="lsvHelps" Margin="20">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal">
-
                                             <TextBlock FontFamily="/NecroBot2.Win;component/Resources/Fonts/Lato/#Lato Medium">
                                                 <Hyperlink NavigateUri="{Binding Id}" Click="Hyperlink_Click" CommandParameter="{Binding}">
                                                     <TextBlock Text="{Binding Path=Title.Text}"></TextBlock>
@@ -75,11 +66,8 @@
                                 </ListView.ItemTemplate>
                             </ListView>
                         </Grid>
-
                     </Popup>
-
                 </StackPanel>
-
             </Button>
 
             <Button Click="Theme_Selected">
@@ -91,16 +79,9 @@
                             <VisualBrush Stretch="Fill" Visual="{DynamicResource appbar_social_delicious}" />
                         </Rectangle.OpacityMask>
                     </Rectangle>
-                    <TextBlock Margin="4 0 0 0"
-                               VerticalAlignment="Center"
-                               Text="{Binding Source=Theme, Converter={StaticResource ResourceKey=I18NConveter}}" />
-
-                    <Popup Margin="10,10,0,13" Name="Popup1"
-                           HorizontalAlignment="Left"
-                           VerticalAlignment="Top"
-                           Width="320" Height="280" IsOpen="False" AllowsTransparency="True">
+                    <TextBlock Margin="4 0 0 0" VerticalAlignment="Center" Text="{Binding Source=Theme, Converter={StaticResource ResourceKey=I18NConveter}}" />
+                    <Popup Margin="10,10,0,13" Name="Popup1" HorizontalAlignment="Left" VerticalAlignment="Top" Width="320" Height="280" IsOpen="False" AllowsTransparency="True">
                         <Grid Background="White">
-
                             <WrapPanel Background="White" Margin="20,20,20,20">
                                 <RadioButton GroupName="Theme" Foreground="Red" Content="Red"   Checked="OnTheme_Checked" Width="90" Margin="0,5,0,5" ></RadioButton>
                                 <RadioButton GroupName="Theme" Foreground="Blue" Content="Blue"   Checked="OnTheme_Checked" Width="90" Margin="0,5,0,5" IsChecked="True"></RadioButton>
@@ -124,16 +105,39 @@
                                 <RadioButton GroupName="Theme" Foreground="Teal" Content="Teal" Checked="OnTheme_Checked" Width="90"  Margin="0,5,0,5"></RadioButton>
                                 <RadioButton GroupName="Theme" Foreground="Violet" Content="Violet" Checked="OnTheme_Checked" Width="90"  Margin="0,5,0,5"></RadioButton>
                                 <RadioButton GroupName="Theme" Foreground="Yellow" Content="Yellow" Checked="OnTheme_Checked" Width="90"  Margin="0,5,0,5"></RadioButton>
-
                             </WrapPanel>
                         </Grid>
-
                     </Popup>
-
                 </StackPanel>
-
             </Button>
-            <Button x:Name="menuConsole" Click="menuConsole_Click">
+			<Button Click="Scheme_Selected">
+                <StackPanel Orientation="Horizontal">
+                    <Rectangle Width="20"
+                               Height="20"
+                               Fill="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}">
+                        <Rectangle.OpacityMask>
+                            <VisualBrush Stretch="Fill" Visual="{DynamicResource appbar_social_delicious}" />
+                        </Rectangle.OpacityMask>
+                    </Rectangle>
+                    <TextBlock Margin="4 0 0 0" VerticalAlignment="Center" Text="{Binding Source=Scheme, Converter={StaticResource ResourceKey=I18NConveter}}" />
+                    <Popup Margin="10,10,0,13" Name="Popup2" HorizontalAlignment="Left" VerticalAlignment="Top" Width="320" Height="280" IsOpen="False" AllowsTransparency="True">
+                        <Grid Background="White">
+                            <WrapPanel Background="White" Margin="20,20,20,20">
+                                <RadioButton GroupName="Scheme" Foreground="Gray" Content="Light" Checked="OnScheme_Checked" Width="90" Margin="0,5,0,5" IsChecked="True"></RadioButton>
+								<RadioButton GroupName="Scheme" Foreground="Black" Content="Dark" Checked="OnScheme_Checked" Width="90" Margin="0,5,0,5" ></RadioButton>
+                            </WrapPanel>
+                        </Grid>
+                    </Popup>
+                </StackPanel>
+            </Button>
+            <Button x:Name="BrowserToggle" Click="BrowserToggle_Click">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Margin="4 0 0 0" Name="browserMenuText"
+                               VerticalAlignment="Center"
+                               Text="{Binding Source=DisableHub, Converter={StaticResource ResourceKey=I18NConveter}}" />
+                </StackPanel>
+            </Button>
+            <Button x:Name="menuConsole" Click="MenuConsole_Click">
                 <StackPanel Orientation="Horizontal">
                     <Rectangle Width="20"
                                Height="20"
@@ -148,7 +152,7 @@
                 </StackPanel>
 
             </Button>
-            <Button Click="menuSetting_Click" Name="menuSetting">
+            <Button Click="MenuSetting_Click" Name="menuSetting">
                 <StackPanel Orientation="Horizontal">
                     <Rectangle Width="20"
                                Height="20"
@@ -163,7 +167,7 @@
                 </StackPanel>
             </Button>
 
-            <Button Name="btnDonate"  Click="btnDonate_Click" Margin="0,0,0,0">
+            <Button Name="btnDonate"  Click="BtnDonate_Click" Margin="0,0,0,0">
                 <StackPanel Orientation="Horizontal">
                     <Image Source="http://www.northernyouth.ca/wp-content/uploads/2014/11/NYL-Donate-Button.png" Height="30"/>
                 </StackPanel>
@@ -177,7 +181,7 @@
         <GroupBox x:Name="grbPlayerInfo" DockPanel.Dock="Top" Height="120">
             <GroupBox.Header>
                 <DockPanel LastChildFill="True">
-                    <Button Content="Hide" DockPanel.Dock="Right" Name="btnHideInfo" Click="btnHideInfo_Click" />
+                    <Button Content="Hide" DockPanel.Dock="Right" Name="btnHideInfo" Click="BtnHideInfo_Click" />
                     <Label Content="Logging in ..... check console window for detail" Name="lblAccount"
                            Foreground="White" FontWeight="Bold">
                         <!--<Label.Content>
@@ -217,7 +221,7 @@
                     </StackPanel>
                     <StackPanel Margin="10">
                         <TextBlock Name="txtLastError" Text="" TextWrapping="Wrap" FontFamily="/NecroBot2.Win;component/Resources/Fonts/Lato/#Lato" FontSize="16"></TextBlock>
-                        <Button Margin="30,10, 10,30" Click="btnExit_Click" Name="btnExit" Content="{Binding Source=ClickHereExit, Converter={StaticResource I18NConveter}}" FontFamily="/NecroBot2.Win;component/Resources/Fonts/Lato/#Lato Heavy" FontSize="18.667" ></Button>
+                        <Button Margin="30,10, 10,30" Click="BtnExit_Click" Name="btnExit" Content="{Binding Source=ClickHereExit, Converter={StaticResource I18NConveter}}" FontFamily="/NecroBot2.Win;component/Resources/Fonts/Lato/#Lato Heavy" FontSize="18.667" ></Button>
                     </StackPanel>
                 </StackPanel>
 
@@ -227,7 +231,7 @@
         <TabControl TabStripPlacement="Left" HorizontalAlignment="Stretch" 
                     VerticalAlignment="Stretch" 
                     Name="tabMain"
-                    SelectionChanged="tabMain_SelectionChanged" Margin="0,0,0,5"
+                    SelectionChanged="TabMain_SelectionChanged" Margin="0,0,0,5"
                     >
             <TabControl.Resources>
                 <Style TargetType="{x:Type TabItem}">
@@ -245,7 +249,19 @@
                     <Setter Property="Padding" Value="3" />
                 </Style>
             </TabControl.Resources>
-            <TabItem FontSize="14" Name="tabAccounts" Header="{Binding Source=AccountSetting , Converter={StaticResource I18NConveter}}">
+            <TabItem Name="tabAccounts">
+                <TabItem.Header>
+                    <Image x:Name="accountsIMG" Source="Resources/AccountsImage.png" Width="32" RenderTransformOrigin="0.5,0.5" >
+                        <Image.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform/>
+                                <SkewTransform/>
+                                <RotateTransform Angle="90.00"/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </Image.RenderTransform>
+                    </Image>
+                </TabItem.Header>
                 <DataGrid Name="gridAccounts" AutoGenerateColumns="False" CanUserDeleteRows="False" CanUserAddRows="False">
                     <DataGrid.Columns>
                         <DataGridTextColumn Binding="{Binding AuthType}" Header="AuthType"></DataGridTextColumn>
@@ -268,7 +284,7 @@
 
                                 <DataTemplate>
                                     <StackPanel>
-                                        <Button   Name="btnSwitchAcount" Click="btnSwitchAcount_Click" CommandParameter="{Binding}" Foreground="Green" Background="Transparent"  IsEnabled="{Binding IsRunning, Converter= {StaticResource InverseBooleanConverter}}" Cursor="Hand">
+                                        <Button   Name="btnSwitchAcount" Click="BtnSwitchAcount_Click" CommandParameter="{Binding}" Foreground="Green" Background="Transparent"  IsEnabled="{Binding IsRunning, Converter= {StaticResource InverseBooleanConverter}}" Cursor="Hand">
                                             <TextBlock Margin="5,5,5,5" Text="{Binding Source=Switch, Converter={StaticResource I18NConveter }}">
                                             </TextBlock>
                                         </Button>
@@ -280,9 +296,35 @@
 
                 </DataGrid>
             </TabItem>
-            <TabItem Name="tabMap" >
+            <TabItem Name="tabBrowser">
                 <TabItem.Header>
-                    <TextBlock Margin="7,5,7,5" Text="{Binding  Source=MapTabTitle, Converter={StaticResource ResourceKey=I18NConveter}, FallbackValue=MAPS}" FontSize="14"/>
+                    <Image x:Name="browserIMG" Source="Resources/HubImage.png" Width="32" RenderTransformOrigin="0.5,0.5" Height="32" >
+                        <Image.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform/>
+                                <SkewTransform/>
+                                <RotateTransform Angle="90.000"/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </Image.RenderTransform>
+                    </Image>
+                </TabItem.Header>
+                <Grid Name="browserLayout">
+                    <wpf:WPFBrowserView x:Name="webView" BrowserType="LIGHTWEIGHT"/>
+                </Grid>
+            </TabItem>
+            <TabItem Name="tabMap">
+                <TabItem.Header>
+                    <Image x:Name="mapIMG" Source="Resources/MapImage.png" Width="32" RenderTransformOrigin="0.5,0.5" Height="32" >
+                        <Image.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform/>
+                                <SkewTransform/>
+                                <RotateTransform Angle="90.000"/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </Image.RenderTransform>
+                    </Image>
                 </TabItem.Header>
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -299,29 +341,38 @@
 
                 </Grid>
             </TabItem>
-            <TabItem >
+            <TabItem x:Name="tabSniper">
                 <TabItem.Header>
-                    <TextBlock  FontSize="14" Margin="7,5,7,5" Text="{Binding  Source=SniperTabTitle, Converter={StaticResource ResourceKey=I18NConveter}, FallbackValue=MAPS}"/>
+                    <Image x:Name="sniperIMG" Source="Resources/SniperImage.png" Width="32" Height="32" />
                 </TabItem.Header>
 
                 <local:SniperControl x:Name="ctrlSniper" DataContext="{Binding Path=SnipeList}" />
             </TabItem>
 
-            <TabItem  IsSelected="True">
+            <TabItem x:Name="tabConsole" IsSelected="True">
                 <TabItem.Header>
-                    <TextBlock FontSize="14" Text="{Binding Source=ConsoleTabTitle, Converter={StaticResource ResourceKey=I18NConveter}, FallbackValue=Console}"/>
+                    <Image x:Name="consoleIMG" Source="Resources/ConsoleImage.png" Width="32" RenderTransformOrigin="0.5,0.5" Height="32" >
+                        <Image.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform/>
+                                <SkewTransform/>
+                                <RotateTransform Angle="90.000"/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </Image.RenderTransform>
+                    </Image>
                 </TabItem.Header>
                 <DockPanel LastChildFill="True">
                     <TextBox HorizontalAlignment="Stretch" 
                              Name="txtCmdInput" 
-                             Background="Black" 
+                             Background="#002b36" 
                              DockPanel.Dock="Top"
-                             Foreground="White" 
+                             Foreground="#fdf6e3" 
                              BorderBrush="Aquamarine" 
                              BorderThickness="1" 
                              ToolTip="{Binding Source=InputCommand, Converter={StaticResource ResourceKey=I18NConveter}}" 
-                             MouseDown="txtCmdInput_MouseDown"
-                             KeyDown="txtCmdInput_KeyDown"
+                             MouseDown="TxtCmdInput_MouseDown"
+                             KeyDown="TxtCmdInput_KeyDown"
                              />
 
                     <RichTextBox
@@ -331,7 +382,7 @@
                     DockPanel.Dock="Top"
                     x:Name="consoleLog"
                     HorizontalAlignment="Stretch"
-                    Background="Black"
+                    Background="#002b36"
                     VerticalAlignment="Stretch"
                     FontSize="15" 
                     IsReadOnly="True" 
@@ -346,14 +397,50 @@
 
             </TabItem>
 
-            <TabItem FontSize="14" Header="{Binding Path= PokemonTabHeader, FallbackValue=Pokemon}" Name="tabPokemons">
+            <TabItem Name="tabPokemons">
+                <TabItem.Header>
+                    <Image x:Name="pokemonIMG" Source="Resources/PokemonImage.png" Width="32" Height="32" RenderTransformOrigin="0.5,0.5" >
+                        <Image.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform/>
+                                <SkewTransform/>
+                                <RotateTransform Angle="90.000"/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </Image.RenderTransform>
+                    </Image>
+                </TabItem.Header>
                 <local:PokemonInventory x:Name="ctrPokemonInventory" DataContext="{Binding Path=PokemonList}"
                                         OnPokemonItemSelected="PokemonInventory_OnPokemonItemSelected" />
             </TabItem>
-            <TabItem FontSize="14" Name="tabItems" Header="{Binding Path=ItemsTabHeader, FallbackValue=Pokemon}">
+            <TabItem Name="tabItems">
+                <TabItem.Header>
+                    <Image x:Name="itemsIMG" Source="Resources/ItemsImage.png" Width="32" RenderTransformOrigin="0.5,0.5" >
+                        <Image.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform/>
+                                <SkewTransform/>
+                                <RotateTransform Angle="90.000"/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </Image.RenderTransform>
+                    </Image>
+                </TabItem.Header>
                 <local:ItemsInventory DataContext="{Binding Path=ItemsList}" x:Name="ctrlItemControl" />
             </TabItem>
-            <TabItem FontSize="14" Name="tabEggs" Header="{Binding Source=EggTabHeader , Converter={StaticResource I18NConveter}}">
+            <TabItem Name="tabEggs">
+                <TabItem.Header>
+                    <Image x:Name="eggsIMG" Source="Resources/EggsImage.png" Width="32" Height="32" RenderTransformOrigin="0.5,0.5" >
+                        <Image.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform/>
+                                <SkewTransform/>
+                                <RotateTransform Angle="90.000"/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </Image.RenderTransform>
+                    </Image>
+                </TabItem.Header>
                 <local:EggsControl DataContext="{Binding Path=EggsList}" x:Name="ctrlEggsControl" />
             </TabItem>
         </TabControl>

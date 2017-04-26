@@ -14,7 +14,6 @@ using PoGo.NecroBot.Logic.Model.Settings;
 using PoGo.NecroBot.Logic.PoGoUtils;
 using PoGo.NecroBot.Logic.State;
 using PoGo.NecroBot.Logic.Utils;
-using PokemonGo.RocketAPI.Enums;
 using POGOProtos.Data;
 using POGOProtos.Inventory.Item;
 using POGOProtos.Map.Fort;
@@ -23,8 +22,6 @@ using POGOProtos.Networking.Responses;
 using TinyIoC;
 using POGOProtos.Enums;
 using System.Collections.Generic;
-using PoGo.NecroBot.Logic;
-using System.Collections.ObjectModel;
 #endregion
 
 namespace PoGo.NecroBot.Logic.Tasks
@@ -170,18 +167,19 @@ namespace PoGo.NecroBot.Logic.Tasks
                     session.Client.CurrentLongitude, latitude, longitude);
                 if (session.LogicSettings.ActivateMSniper)
                 {
-                    var newdata = new MSniperServiceTask.EncounterInfo();
-                    newdata.EncounterId = _encounterId.ToString();
-                    newdata.Iv = Math.Round(pokemonIv, 2);
-                    newdata.Latitude = latitude.ToString("G17", CultureInfo.InvariantCulture);
-                    newdata.Longitude = longitude.ToString("G17", CultureInfo.InvariantCulture);
-                    newdata.PokemonId = (int)(encounteredPokemon?.PokemonId ?? 0);
-                    newdata.PokemonName = encounteredPokemon?.PokemonId.ToString();
-                    newdata.SpawnPointId = _spawnPointId;
-                    newdata.Move1 = PokemonInfo.GetPokemonMove1(encounteredPokemon).ToString();
-                    newdata.Move2 = PokemonInfo.GetPokemonMove2(encounteredPokemon).ToString();
-                    newdata.Expiration = unixTimeStamp;
-
+                    var newdata = new MSniperServiceTask.EncounterInfo()
+                    {
+                        EncounterId = _encounterId.ToString(),
+                        Iv = Math.Round(pokemonIv, 2),
+                        Latitude = latitude.ToString("G17", CultureInfo.InvariantCulture),
+                        Longitude = longitude.ToString("G17", CultureInfo.InvariantCulture),
+                        PokemonId = (int)(encounteredPokemon?.PokemonId ?? 0),
+                        PokemonName = encounteredPokemon?.PokemonId.ToString(),
+                        SpawnPointId = _spawnPointId,
+                        Move1 = PokemonInfo.GetPokemonMove1(encounteredPokemon).ToString(),
+                        Move2 = PokemonInfo.GetPokemonMove2(encounteredPokemon).ToString(),
+                        Expiration = unixTimeStamp
+                    };
                     session.EventDispatcher.Send(newdata);
                 }
 
@@ -231,7 +229,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                 {
                     if (session.LogicSettings.UseHumanlikeDelays)
                     {
-                        DelayingUtils.Delay(session.LogicSettings.BeforeCatchDelay, 0);
+                        await DelayingUtils.DelayAsync(session.LogicSettings.BeforeCatchDelay, 0, session.CancellationTokenSource.Token).ConfigureAwait(false);
                     }
 
                     if ((session.LogicSettings.MaxPokeballsPerPokemon > 0 &&
@@ -259,7 +257,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                             _encounterId,
                             _spawnPointId,
                             pokemonIv,
-                            pokemonCp.HasValue ? pokemonCp.Value : 10000,  //unknow CP pokemon, want to use berry
+                            pokemonCp ?? 10000,  //unknown CP pokemon, want to use berry
                             encounterEV.Level,
                             probability,
                             cancellationToken).ConfigureAwait(false);
@@ -342,9 +340,9 @@ namespace PoGo.NecroBot.Logic.Tasks
                     {
                         MSniperServiceTask.BlockSnipe();
 
-                        if( totalBalls <= BALL_REQUIRED_TO_BYPASS_CATCHFLEE)
+                        if (totalBalls <= BALL_REQUIRED_TO_BYPASS_CATCHFLEE)
                         {
-                            Logger.Write("You don't enought ball to  by pass catchflee");
+                            Logger.Write("You don't have enough balls to bypass catchflee");
                             return false;
                         }
                         List<ItemId> ballToByPass = new List<ItemId>();
@@ -369,9 +367,9 @@ namespace PoGo.NecroBot.Logic.Tasks
                         bool catchMissed = true;
 
                         Random r = new Random();
-                        for (int i = 0; i < ballToByPass.Count -1; i++)
+                        for (int i = 0; i < ballToByPass.Count - 1; i++)
                         {
-                            if(i>130 && r.Next(0,100)<=30)
+                            if (i > 130 && r.Next(0, 100) <= 30)
                             {
                                 catchMissed = false;
                             }
@@ -414,7 +412,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                                     : currentFortData.Id, pokeball, normalizedRecticleSize, spinModifier, hitPokemon).ConfigureAwait(false);
                         await session.Inventory.UpdateInventoryItem(pokeball).ConfigureAwait(false);
                     }
-                    
+
 
                     var evt = new PokemonCaptureEvent()
                     {
@@ -429,8 +427,12 @@ namespace PoGo.NecroBot.Logic.Tasks
 
                     if (caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchSuccess)
                     {
-                        evt.Gender = (await session.Inventory.GetPokemons().ConfigureAwait(false)).First(x => x.Id == caughtPokemonResponse.CapturedPokemonId).PokemonDisplay.Gender.ToString();
 
+                        evt.Shiny = (await session.Inventory.GetPokemons().ConfigureAwait(false)).First(x => x.Id == caughtPokemonResponse.CapturedPokemonId).PokemonDisplay.Shiny ? "Yes" : "No";
+                        evt.Form = (await session.Inventory.GetPokemons().ConfigureAwait(false)).First(x => x.Id == caughtPokemonResponse.CapturedPokemonId).PokemonDisplay.Form.ToString().Replace("Unown", "").Replace("Unset", "Normal");
+                        evt.Costume = (await session.Inventory.GetPokemons().ConfigureAwait(false)).First(x => x.Id == caughtPokemonResponse.CapturedPokemonId).PokemonDisplay.Costume.ToString().Replace("Unset", "Regular");
+                        evt.Gender = (await session.Inventory.GetPokemons().ConfigureAwait(false)).First(x => x.Id == caughtPokemonResponse.CapturedPokemonId).PokemonDisplay.Gender.ToString();
+                        
                         var totalExp = 0;
                         var totalStarDust = caughtPokemonResponse.CaptureAward.Stardust.Sum();
                         if (encounteredPokemon != null)
@@ -447,6 +449,15 @@ namespace PoGo.NecroBot.Logic.Tasks
                         evt.Stardust = stardust;
                         evt.UniqueId = caughtPokemonResponse.CapturedPokemonId;
                         evt.Candy = await session.Inventory.GetCandyFamily(pokemon.PokemonId).ConfigureAwait(false);
+
+                        if (session.LogicSettings.AutoFavoriteShinyOnCatch)
+                        {
+                            if (evt.Shiny == "Yes")
+                            {
+                                await FavoritePokemonTask.Execute(session, encounteredPokemon.Id, true);
+                                Logger.Write($"Shiny Pokemon {encounteredPokemon.Id} has been Caught and auto-favorited.");
+                            }
+                        }
                     }
 
                     if (caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchSuccess ||
@@ -502,30 +513,30 @@ namespace PoGo.NecroBot.Logic.Tasks
                         switch (caughtPokemonResponse.Status)
                         {
                             case CatchPokemonResponse.Types.CatchStatus.CatchError:
-                                DelayingUtils.Delay(session.LogicSettings.CatchErrorDelay, 0);
+                                await DelayingUtils.DelayAsync(session.LogicSettings.CatchErrorDelay, 0, session.CancellationTokenSource.Token).ConfigureAwait(false);
                                 break;
 
                             case CatchPokemonResponse.Types.CatchStatus.CatchSuccess:
-                                DelayingUtils.Delay(session.LogicSettings.CatchSuccessDelay, 0);
+                                await DelayingUtils.DelayAsync(session.LogicSettings.CatchSuccessDelay, 0, session.CancellationTokenSource.Token).ConfigureAwait(false);
                                 break;
 
                             case CatchPokemonResponse.Types.CatchStatus.CatchEscape:
-                                DelayingUtils.Delay(session.LogicSettings.CatchEscapeDelay, 0);
+                                await DelayingUtils.DelayAsync(session.LogicSettings.CatchEscapeDelay, 0, session.CancellationTokenSource.Token).ConfigureAwait(false);
                                 break;
 
                             case CatchPokemonResponse.Types.CatchStatus.CatchFlee:
-                                DelayingUtils.Delay(session.LogicSettings.CatchFleeDelay, 0);
+                                await DelayingUtils.DelayAsync(session.LogicSettings.CatchFleeDelay, 0, session.CancellationTokenSource.Token).ConfigureAwait(false);
                                 break;
 
                             case CatchPokemonResponse.Types.CatchStatus.CatchMissed:
-                                DelayingUtils.Delay(session.LogicSettings.CatchMissedDelay, 0);
+                                await DelayingUtils.DelayAsync(session.LogicSettings.CatchMissedDelay, 0, session.CancellationTokenSource.Token).ConfigureAwait(false);
                                 break;
 
                             default:
                                 break;
                         }
                     }
-                    else DelayingUtils.Delay(session.LogicSettings.DelayBetweenPlayerActions, 0);
+                    else await DelayingUtils.DelayAsync(session.LogicSettings.DelayBetweenPlayerActions, 0, session.CancellationTokenSource.Token).ConfigureAwait(false);
                 } while (caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchMissed ||
                          caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchEscape);
 
@@ -620,7 +631,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                         (PokemonMove)Enum.Parse(typeof(PokemonMove), encounterEV.Move2),
                         encounterEV.Level, true))
                     {
-                        //thow
+                        //throw
                         throw new ActiveSwitchByPokemonException()
                         {
                             EncounterData = encounterEV,

@@ -1,12 +1,7 @@
-﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using POGOProtos.Data;
 using System.Collections.ObjectModel;
-using PoGo.NecroBot.Logic.Common;
 
 namespace PoGo.Necrobot.Window.Model
 {
@@ -32,26 +27,28 @@ namespace PoGo.Necrobot.Window.Model
             }
             set
             {
-                this.internalPokemons = value;
+                internalPokemons = value;
                 RaisePropertyChanged("Pokemons");
                 RaisePropertyChanged("PokemonTabHeader");
             }
         }
 
         public int MaxItemStorage { get; set; }
+        public int MaxPokemonStorage { get; set; }
         public DataContext()
         {
             UI = new UIViewModel();
             Map = new MapViewModel();
 
             MaxItemStorage = 350;
+            MaxPokemonStorage = 250;
             ItemsList = new ItemsListViewModel();
             Sidebar = new SidebarViewModel();
             internalPokemons = new List<PokemonData>();
             SnipeList = new SnipeListViewModel();
             EggsList = new EggsListViewModel();
 
-            PokemonList = new PokemonListViewModel(this.Session)
+            PokemonList = new PokemonListViewModel(Session)
             {
                 Pokemons = new ObservableCollection<PokemonDataViewModel>()
             };
@@ -61,18 +58,23 @@ namespace PoGo.Necrobot.Window.Model
         {
             get
             {
-                return $"   Pokemons ({PokemonList.Pokemons.Count}/250)   ";
+                var pokemonNum = PokemonList.Pokemons.Count() + EggsList.Eggs.Count();
+                if (pokemonNum > MaxPokemonStorage)
+                {
+                    pokemonNum = MaxPokemonStorage;
+                }
+                return $"   Pokemons ({pokemonNum}/{MaxPokemonStorage})   ";
             }
         }
 
         internal void Reset()
         {
-            this.PokemonList.Pokemons.Clear();
-            this.ItemsList.Items.Clear();
-            this.EggsList.Eggs.Clear();
-            this.EggsList.Incubators.Clear();
+            PokemonList.Pokemons.Clear();
+            ItemsList.Items.Clear();
+            EggsList.Eggs.Clear();
+            EggsList.Incubators.Clear();
 
-            this.ItemsList.RaisePropertyChanged("TotalItem");
+            ItemsList.RaisePropertyChanged("TotalItem");
         }
 
         public string ItemsTabHeader

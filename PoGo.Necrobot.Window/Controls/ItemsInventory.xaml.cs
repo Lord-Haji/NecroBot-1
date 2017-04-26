@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using PoGo.NecroBot.Logic.State;
 using POGOProtos.Inventory.Item;
@@ -20,11 +19,11 @@ namespace PoGo.Necrobot.Window.Controls
 
         public ISession Session { get; internal set; }
 
-        private void btnDrop_Click(object sender, RoutedEventArgs e)
+        private async void BtnDrop_Click(object sender, RoutedEventArgs e)
         {
             var itemId = (ItemId)((Button)sender).CommandParameter ;
 
-            var data = this.DataContext as ItemsListViewModel;
+            var data = DataContext as ItemsListViewModel;
 
             ItemsViewModel Item = data.Get(itemId);
 
@@ -35,7 +34,7 @@ namespace PoGo.Necrobot.Window.Controls
                         if (MessageBox.Show($"Do you want to use {Item.ItemId}", "Use item", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                         {
                             data.Drop(Item);
-                            Task.Run(async () => { await UseLuckyEggTask.Execute(Session); });
+                            await UseLuckyEggTask.Execute(Session);
                         }
                     }
                     break;
@@ -44,7 +43,7 @@ namespace PoGo.Necrobot.Window.Controls
                         if (MessageBox.Show($"Do you want to use {Item.ItemId}", "Use item", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                         {
                             data.Drop(Item);
-                            Task.Run(async () => { await UseIncenseTask.Execute(Session); });
+                            await UseIncenseTask.Execute(Session);
                         }
                     }
                     break;
@@ -53,12 +52,7 @@ namespace PoGo.Necrobot.Window.Controls
                         if (MessageBox.Show($"Do you want to drop {Item.ItemCount - Item.SelectedValue} {Item.ItemId}", "Drop item", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                         {
                             data.Drop(Item);
-                            Task.Run(async () =>
-                            {
-
-                                await RecycleItemsTask.DropItem(Session, Item.ItemId, Item.ItemCount - Item.SelectedValue);
-
-                            });
+                            await RecycleItemsTask.DropItem(Session, Item.ItemId, Item.ItemCount - Item.SelectedValue);
                         }
                     }
                     break;

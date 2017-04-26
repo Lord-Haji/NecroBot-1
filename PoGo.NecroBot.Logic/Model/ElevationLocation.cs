@@ -70,7 +70,8 @@ namespace PoGo.NecroBot.Logic.Model
                 {
                     Directory.CreateDirectory(CACHE_DIR);
                 }
-
+                
+                LiteEngine.Upgrade(DB_NAME, null, true);
                 using (var db = new LiteDatabase(DB_NAME))
                 {
                     db.GetCollection<ElevationLocation>("locations").EnsureIndex(s => s.Id);
@@ -93,8 +94,10 @@ namespace PoGo.NecroBot.Logic.Model
                                 return null;
                             }
 
-                            elevationLocation = new ElevationLocation(latitude, longitude);
-                            elevationLocation.Altitude = altitude;
+                            elevationLocation = new ElevationLocation(latitude, longitude)
+                            {
+                                Altitude = altitude
+                            };
                             locationsCollection.Insert(elevationLocation);
 
                             return elevationLocation;

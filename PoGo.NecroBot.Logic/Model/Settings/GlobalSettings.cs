@@ -155,15 +155,13 @@ namespace PoGo.NecroBot.Logic.Model.Settings
                 allAcc.Add(new AuthConfig()
                 {
                     AuthType = isGoogle ? AuthType.Google : AuthType.Ptc,
-                    GoogleUsername = isGoogle ? string.Format(template, i) : null,
-                    GooglePassword = isGoogle ? password : null,
-                    PtcUsername = !isGoogle ? string.Format(template, i) : null,
-                    PtcPassword = !isGoogle ? password : null,
+                    Username = string.Format(template, i),
+                    Password = password
                 });
             }
 
-            this.Auth.Bots = allAcc.ToList();
-            string json = JsonConvert.SerializeObject(this.Auth, Formatting.Indented,new StringEnumConverter() { CamelCaseText = true });
+            Auth.Bots = allAcc.ToList();
+            string json = JsonConvert.SerializeObject(Auth, Formatting.Indented,new StringEnumConverter() { CamelCaseText = true });
 
             File.WriteAllText("config\\auth.json", json);
             if (File.Exists("accounts.db")) File.Delete("accounts.db");
@@ -681,6 +679,33 @@ namespace PoGo.NecroBot.Logic.Model.Settings
 
                         // But this time we are going to remove PokemonsToEvolve.
                         settings.Remove("PokemonsToEvolve");
+                        break;
+
+                    case 22:
+                        if (settings["PokemonsTransferFilter"] != null)
+                        {
+                            foreach (var x in settings["PokemonsTransferFilter"])
+                            {
+                                var key = ((JProperty)(x)).Name;
+                                var filter = ((JProperty)(x)).Value;
+
+                                if (filter["KeepMaxDuplicatePokemon"] == null)
+                                    filter["KeepMaxDuplicatePokemon"] = 1000;
+                            }
+                        }
+                        break;
+
+                    case 23:
+                        if (settings["PokeStopConfig"] != null)
+                        {
+                            settings["PokeStopConfig"]["PokeStopLimit"] = 700;
+                            Logger.Write($"PokeStopLimit changed to {settings["PokeStopConfig"]["PokeStopLimit"]}", LogLevel.Info);
+                        }
+                        if (settings["PokemonConfig"] != null)
+                        {
+                            settings["PokemonConfig"]["CatchPokemonLimit"] = 500;
+                            Logger.Write($"CatchPokemonLimit changed to {settings["PokemonConfig"]["CatchPokemonLimit"]}", LogLevel.Info);
+                        }
                         break;
                 }
             }

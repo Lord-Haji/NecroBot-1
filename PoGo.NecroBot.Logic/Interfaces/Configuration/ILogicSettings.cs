@@ -84,6 +84,7 @@ namespace PoGo.NecroBot.Logic.Interfaces.Configuration
         int SnipeLocationServerPort { get; }
         bool UseSnipeLocationServer { get; }
         int KeepMinDuplicatePokemon { get; }
+        int KeepMaxDuplicatePokemon { get; }
         bool PrioritizeIvOverCp { get; }
         int AmountOfTimesToUpgradeLoop { get; }
         int GetMinStarDustForLevelUp { get; }
@@ -107,6 +108,7 @@ namespace PoGo.NecroBot.Logic.Interfaces.Configuration
         int FavoriteMinLevel { get; }
         string FavoriteOperator { get; }
         bool AutoFavoritePokemon { get; }
+        bool AutoFavoriteShinyOnCatch { get; }
         string RenameTemplate { get; }
         int AmountOfPokemonToDisplayOnStart { get; }
         string TranslationLanguageCode { get; }
@@ -233,6 +235,8 @@ namespace PoGo.NecroBot.Logic.Interfaces.Configuration
         GUIConfig UIConfig { get; }
         string DefaultBuddyPokemon { get; }
         bool AutoFinishTutorial { get;  }
+        bool SkipFirstTimeTutorial { get; }
+        bool SkipCollectingLevelUpRewards { get; }
         Dictionary<ItemId, ItemUseFilter> ItemUseFilters { get; }
         double UpgradePokemonLvlMinimum { get; }
         bool EvolveFavoritedOnly { get; }

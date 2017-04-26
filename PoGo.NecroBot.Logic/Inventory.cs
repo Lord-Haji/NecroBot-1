@@ -65,18 +65,14 @@ namespace PoGo.NecroBot.Logic
         public Inventory(ISession session, Client client, ILogicSettings logicSettings,
             Action onUpdated = null)
         {
-            this.ownerSession = session;
+            ownerSession = session;
             _client = client;
             _logicSettings = logicSettings;
             // Inventory update will be called everytime GetMapObject is called.
-            client.Inventory.OnInventoryUpdated += async () =>
+            client.Inventory.OnInventoryUpdated += () =>
             {
                 if (onUpdated != null && _player != null)
                 {
-                    var accManager = TinyIoCContainer.Current.Resolve<MultiAccountManager>();
-                    if (accManager != null)
-                        await accManager.UpdateCurrentAccountLevel().ConfigureAwait(false);
-
                     onUpdated();
                 }
             };
@@ -107,7 +103,7 @@ namespace PoGo.NecroBot.Logic
                     && item.InventoryItemData.Item != null
                     && item.InventoryItemData.Item.ItemId == itemId)
                 {
-                    this.ownerSession.EventDispatcher.Send(new InventoryItemUpdateEvent()
+                    ownerSession.EventDispatcher.Send(new InventoryItemUpdateEvent()
                     {
                         Item = item.InventoryItemData.Item
                     });
@@ -140,7 +136,7 @@ namespace PoGo.NecroBot.Logic
 
         public async Task<IEnumerable<PokemonData>> GetWeakPokemonToTransfer(
             IEnumerable<PokemonId> pokemonsNotToTransfer, Dictionary<PokemonId, EvolveFilter> pokemonEvolveFilters,
-            bool keepPokemonsThatCanEvolve = false, bool prioritizeIVoverCp = false
+            bool keepPokemonsThatCanEvolve = false
         )
         {
             var session = TinyIoCContainer.Current.Resolve<ISession>();
@@ -239,7 +235,7 @@ namespace PoGo.NecroBot.Logic
 
             foreach (var pokemonGroupToTransfer in pokemonToTransfer.GroupBy(p => p.PokemonId).ToList())
             {
-                var amountToKeepInStorage = GetApplyFilter<TransferFilter>(session.LogicSettings.PokemonsTransferFilter,pokemonGroupToTransfer.Key).KeepMinDuplicatePokemon;
+                var amountToKeepInStorage = Math.Max(GetApplyFilter<TransferFilter>(session.LogicSettings.PokemonsTransferFilter, pokemonGroupToTransfer.Key).KeepMinDuplicatePokemon, 0);
 
                 var inStorage = myPokemon.Count(data => data.PokemonId == pokemonGroupToTransfer.Key);
                 var needToRemove = inStorage - amountToKeepInStorage;
@@ -272,6 +268,50 @@ namespace PoGo.NecroBot.Logic
                         .OrderBy(x => x.Cp)
                         .ThenBy(PokemonInfo.CalculatePokemonPerfection)
                         .Take(canBeRemoved));
+                }
+            }
+            
+            return results;
+        }
+
+        public async Task<IEnumerable<PokemonData>> GetMaxPokemonToTransfer(
+            IEnumerable<PokemonId> pokemonsNotToTransfer, bool prioritizeIVoverCp = false)
+        {
+            var session = TinyIoCContainer.Current.Resolve<ISession>();
+            var myPokemon = await GetPokemons().ConfigureAwait(false);
+
+            var transferrablePokemon = myPokemon.Where(p => !pokemonsNotToTransfer.Contains(p.PokemonId) && CanTransferPokemon(p));
+            
+            var results = new List<PokemonData>();
+
+            foreach (var pokemonGroupToTransfer in transferrablePokemon.GroupBy(p => p.PokemonId).ToList())
+            {
+                var amountToKeepInStorage = GetApplyFilter<TransferFilter>(session.LogicSettings.PokemonsTransferFilter, pokemonGroupToTransfer.Key).KeepMaxDuplicatePokemon;
+
+                if (amountToKeepInStorage < 0)
+                    continue;
+
+                var inStorage = pokemonGroupToTransfer.Count();
+                if (amountToKeepInStorage >= inStorage)
+                    continue;
+
+                var needToRemove = inStorage - amountToKeepInStorage;
+                
+                Logger.Write($"Max duplicate {pokemonGroupToTransfer.Key} is {amountToKeepInStorage}. {needToRemove} out of {inStorage} {pokemonGroupToTransfer.Key} need to be transferred.", Logic.Logging.LogLevel.Info);
+
+                if (prioritizeIVoverCp)
+                {
+                    results.AddRange(pokemonGroupToTransfer
+                        .OrderBy(PokemonInfo.CalculatePokemonPerfection)
+                        .ThenBy(n => n.Cp)
+                        .Take(needToRemove));
+                }
+                else
+                {
+                    results.AddRange(pokemonGroupToTransfer
+                        .OrderBy(x => x.Cp)
+                        .ThenBy(PokemonInfo.CalculatePokemonPerfection)
+                        .Take(needToRemove));
                 }
             }
             
@@ -548,7 +588,7 @@ namespace PoGo.NecroBot.Logic
             }
             catch (NullReferenceException)
             {
-                DelayingUtils.Delay(3000, 3000);
+                await DelayingUtils.DelayAsync(3000, 3000, ownerSession.CancellationTokenSource.Token).ConfigureAwait(false);
                 return await GetPokemonFamilies(++retries).ConfigureAwait(false);
             }
 
@@ -633,7 +673,7 @@ namespace PoGo.NecroBot.Logic
                 return false;
 
             // Can't transfer buddy pokemon
-            var buddy = this.ownerSession.Profile.PlayerData.BuddyPokemon;
+            var buddy = ownerSession.Profile.PlayerData.BuddyPokemon;
             if (buddy != null && buddy.Id == pokemon.Id)
                 return false;
 

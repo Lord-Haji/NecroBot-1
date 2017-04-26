@@ -1,25 +1,17 @@
 ﻿using MahApps.Metro.Controls;
-using Microsoft.Win32;
-using PoGo.NecroBot.Logic.Model.Settings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using PoGo.NecroBot.Logic.Event;
+//using System.Windows.Media;
+using PoGo.Necrobot.Window.Properties;
 using PoGo.NecroBot.Logic.State;
 using PoGo.Necrobot.Window.Win32;
-using PoGo.NecroBot.Logic.Event.Player;
 using PoGo.Necrobot.Window.Model;
-using PoGo.NecroBot.Logic;
 using PoGo.NecroBot.Logic.Logging;
 using System.Diagnostics;
 using TinyIoC;
@@ -29,6 +21,9 @@ using System.Net;
 using System.Xml;
 using System.IO;
 using System.Net.Http;
+using PoGo.NecroBot.Logic;
+using PoGo.NecroBot.Logic.Model.Settings;
+using static PoGo.NecroBot.Logic.MultiAccountManager;
 
 namespace PoGo.Necrobot.Window
 {
@@ -39,41 +34,62 @@ namespace PoGo.Necrobot.Window
     {
         private static Dictionary<LogLevel, string> ConsoleColors = new Dictionary<LogLevel, string>()
             {
-                { LogLevel.Error, "Red" },
-                { LogLevel.Caught, "Green" },
-                { LogLevel.Info, "DarkCyan" } ,
-                { LogLevel.Warning, "DarkYellow" } ,
-                { LogLevel.Pokestop,"Cyan" }  ,
-                { LogLevel.Farming,"Magenta" },
-                { LogLevel.Sniper,"White" },
-                { LogLevel.Recycling,"DarkMagenta" },
-                { LogLevel.Flee,"DarkYellow" },
-                { LogLevel.Transfer,"DarkGreen" },
-                { LogLevel.Evolve,"DarkGreen" },
-                { LogLevel.Berry,"DarkYellow" },
-                { LogLevel.Egg,"DarkYellow" },
-                { LogLevel.Debug,"Gray" },
-                { LogLevel.Update,"White" },
-                { LogLevel.New,"Green" },
-                { LogLevel.SoftBan,"Red" },
-                { LogLevel.LevelUp,"Magenta" },
-                { LogLevel.Gym,"Magenta" },
-                { LogLevel.Service ,"White" }
+                { LogLevel.Error, "#dc322f" },
+                { LogLevel.Caught, "#859900" },
+                { LogLevel.Info, "#268bd2" } ,
+                { LogLevel.Warning, "#b58900" } ,
+                { LogLevel.Pokestop, "#2aa198" }  ,
+                { LogLevel.Farming, "#d33682" },
+                { LogLevel.Sniper, "#93a1a1" },
+                { LogLevel.Recycling, "#cb4b16" },
+                { LogLevel.Flee, "#b58900" },
+                { LogLevel.Transfer, "#586e75" },
+                { LogLevel.Evolve, "#586e75" },
+                { LogLevel.Berry, "#b58900" },
+                { LogLevel.Egg, "#b58900" },
+                { LogLevel.Debug, "#2aa198" },
+                { LogLevel.Update, "#fdf6e3" },
+                { LogLevel.New, "#859900" },
+                { LogLevel.SoftBan, "#dc322f" },
+                { LogLevel.LevelUp, "#d33682" },
+                { LogLevel.Gym, "#d33682" },
+                { LogLevel.Service , "#fdf6e3" }
             };
 
         public MainClientWindow()
         {
             InitializeComponent();
 
-            datacontext = new Model.DataContext()
+            datacontext = new DataContext()
             {
                 PlayerInfo = new PlayerInfoModel() { Exp = 0 }
             };
 
-            this.DataContext = datacontext;
-            txtCmdInput.Text = TinyIoCContainer.Current.Resolve<UITranslation>().InputCommand; 
+            DataContext = datacontext;
+            txtCmdInput.Text = TinyIoCContainer.Current.Resolve<UITranslation>().InputCommand;
+            var translator = TinyIoCContainer.Current.Resolve<UITranslation>();
+
+            if (Settings.Default.BrowserToggled)
+            {
+                InitBrowser();
+                browserMenuText.Text = translator.DisableHub;
+            }
+            else if (!Settings.Default.BrowserToggled)
+            {
+                browserMenuText.Text = translator.EnableHub;
+            }
         }
-           
+
+        private void InitBrowser()
+        {
+            string path = System.Reflection.Assembly.GetExecutingAssembly().Location;
+
+            string appDir = Path.GetDirectoryName(path);
+            var uri = new Uri(Path.Combine(appDir, @"PokeEase\index.html"));
+
+            webView.URL = uri.ToString();
+        }
+
         private void Grid_Loaded(object sender, RoutedEventArgs e)
         {
 
@@ -84,6 +100,12 @@ namespace PoGo.Necrobot.Window
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             LoadHelpArticleAsync();
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            if (datacontext.PlayerInfo.Level == 35) // Warn Player on Reaching this Level -- NEEDS CONFIG SETTING
+            {
+                Logger.Write($"You have reached Level {datacontext.PlayerInfo.Level} and it is recommended to Switch Accounts",LogLevel.Warning);
+            }
+            ChangeThemeTo(Settings.Default.Theme);
+            ChangeSchemeTo(Settings.Default.Scheme);
         }
         private DateTime lastClearLog = DateTime.Now;
         public void LogToConsoleTab(string message, LogLevel level, string color)
@@ -108,18 +130,18 @@ namespace PoGo.Necrobot.Window
 
         public void OnBotStartedEventHandler(ISession session, StatisticsAggregator stat)
         {
-            this.currentSession = session;
+            currentSession = session;
 
             session.EventDispatcher.EventReceived += HandleBotEvent;
             stat.GetCurrent().DirtyEvent += OnPlayerStatisticChanged;
-            this.currentSession = session;
-            this.botMap.Session = session;
-            this.playerStats = stat;
-            this.ctrPokemonInventory.Session = session;
-            this.ctrlItemControl.Session = session;
-            this.ctrlSniper.Session = session;
-            this.ctrlEggsControl.Session = session;
-            this.datacontext.PokemonList.Session = session;
+            currentSession = session;
+            botMap.Session = session;
+            playerStats = stat;
+            ctrPokemonInventory.Session = session;
+            ctrlItemControl.Session = session;
+            ctrlSniper.Session = session;
+            ctrlEggsControl.Session = session;
+            datacontext.PokemonList.Session = session;
             botMap.SetDefaultPosition(session.Settings.DefaultLatitude, session.Settings.DefaultLongitude);
             var accountManager = TinyIoCContainer.Current.Resolve<MultiAccountManager>();
             gridAccounts.ItemsSource = accountManager.Accounts;
@@ -127,8 +149,8 @@ namespace PoGo.Necrobot.Window
 
         private void OnPlayerStatisticChanged()
         {
-            var stat = this.playerStats.GetCurrent();
-            this.datacontext.PlayerInfo.DirtyEventHandle(stat);
+            var stat = playerStats.GetCurrent();
+            datacontext.PlayerInfo.DirtyEventHandle(stat);
         }
         private void PokemonInventory_OnPokemonItemSelected(PokemonDataViewModel selected)
         {
@@ -136,7 +158,7 @@ namespace PoGo.Necrobot.Window
             lblCount.Text = $"Select : {numberSelected}";
         }
         bool isConsoleShowing = false;
-        private void menuConsole_Click(object sender, RoutedEventArgs e)
+        private void MenuConsole_Click(object sender, RoutedEventArgs e)
         {
             var translator = TinyIoCContainer.Current.Resolve<UITranslation>();
 
@@ -149,19 +171,18 @@ namespace PoGo.Necrobot.Window
             {
                 consoleMenuText.Text = translator.HideConsole;
                 ConsoleHelper.ShowConsoleWindow();
-
             }
 
             isConsoleShowing = !isConsoleShowing;
         }
 
-        private void menuSetting_Click(object sender, RoutedEventArgs e)
+        private void MenuSetting_Click(object sender, RoutedEventArgs e)
         {
-            var configWindow = new SettingsWindow(this, System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "config\\config.json"));
+            var configWindow = new SettingsWindow(this, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config\\config.json"));
             configWindow.ShowDialog();         
         }
 
-        private void btnHideInfo_Click(object sender, RoutedEventArgs e)
+        private void BtnHideInfo_Click(object sender, RoutedEventArgs e)
         {
             var translator = TinyIoCContainer.Current.Resolve<UITranslation>();
 
@@ -177,14 +198,54 @@ namespace PoGo.Necrobot.Window
             }
         }
 
-        private void ChangeThemeTo(string color)
+        private void ChangeThemeTo(string Theme)
         {
-            ResourceDictionary dict = new ResourceDictionary();
-            dict.Source = new Uri($"pack://application:,,,/MahApps.Metro;component/Styles/Accents/{color}.xaml", UriKind.Absolute);
+            ResourceDictionary dict = new ResourceDictionary()
+            {
+                Source = new Uri($"pack://application:,,,/MahApps.Metro;component/Styles/Accents/{Theme}.xaml", UriKind.Absolute)
+            };
             var theme = Application.Current.Resources.MergedDictionaries.LastOrDefault();
             Application.Current.Resources.MergedDictionaries.Add(dict);
             Application.Current.Resources.MergedDictionaries.Remove(theme);
 
+            if (Settings.Default.Scheme != "BaseLight") // If Not Equivalent to Default
+            {
+                ChangeSchemeTo_KeepTheme(Settings.Default.Scheme);
+            }
+        }
+
+        private void ChangeThemeTo_KeepScheme(string Theme)
+        {
+            ResourceDictionary dict = new ResourceDictionary()
+            {
+                Source = new Uri($"pack://application:,,,/MahApps.Metro;component/Styles/Accents/{Theme}.xaml", UriKind.Absolute)
+            };
+            Application.Current.Resources.MergedDictionaries.Add(dict);
+        }
+
+        private void ChangeSchemeTo(string Scheme)
+        {
+            ResourceDictionary dict = new ResourceDictionary()
+            {
+                Source = new Uri($"pack://application:,,,/MahApps.Metro;component/Styles/Accents/{Scheme}.xaml", UriKind.Absolute)
+            };
+            var scheme = Application.Current.Resources.MergedDictionaries.LastOrDefault();
+            Application.Current.Resources.MergedDictionaries.Add(dict);
+            Application.Current.Resources.MergedDictionaries.Remove(scheme);
+
+            if (Settings.Default.Theme != "Blue") // If not Equivalent to Default
+            {
+                ChangeThemeTo_KeepScheme(Settings.Default.Theme);
+            }
+        }
+
+        private void ChangeSchemeTo_KeepTheme(string Scheme)
+        {
+            ResourceDictionary dict = new ResourceDictionary()
+            {
+                Source = new Uri($"pack://application:,,,/MahApps.Metro;component/Styles/Accents/{Scheme}.xaml", UriKind.Absolute)
+            };
+            Application.Current.Resources.MergedDictionaries.Add(dict);
         }
 
         private void Theme_Selected(object sender, RoutedEventArgs e)
@@ -192,28 +253,52 @@ namespace PoGo.Necrobot.Window
             Popup1.IsOpen = !Popup1.IsOpen;
         }
 
+        private void Scheme_Selected(object sender, RoutedEventArgs e)
+        {
+            Popup2.IsOpen = !Popup2.IsOpen;
+        }
+
         private void OnTheme_Checked(object sender, RoutedEventArgs e)
         {
             var rad = sender as RadioButton;
             ChangeThemeTo(rad.Content as string);
+            Settings.Default.Theme = rad.Content as string;
+            Settings.Default.Save();
         }
 
-        private void txtCmdInput_KeyDown(object sender, KeyEventArgs e)
+        private void OnScheme_Checked(object sender, RoutedEventArgs e)
+        {
+            var rad = sender as RadioButton;
+            var Scheme = rad.Content as string;
+            if (Scheme == "Light")
+            {
+                ChangeSchemeTo("BaseLight");
+                Settings.Default.Scheme = "BaseLight";
+            }
+            if (Scheme == "Dark")
+            {
+                ChangeSchemeTo("BaseDark");
+                Settings.Default.Scheme = "BaseDark";
+            }
+            Settings.Default.Save();
+        }
+
+        private void TxtCmdInput_KeyDown(object sender, KeyEventArgs e)
         {
 
             if(e.Key == Key.Enter)
             {
-                Logger.Write(txtCmdInput.Text, LogLevel.Info, ConsoleColor.White);
+                NecroBot.Logic.Logging.Logger.Write(txtCmdInput.Text, LogLevel.Info, ConsoleColor.White);
                 txtCmdInput.Text = "";
             }
         }
 
-        private void txtCmdInput_MouseDown(object sender, MouseButtonEventArgs e)
+        private void TxtCmdInput_MouseDown(object sender, MouseButtonEventArgs e)
         {
             txtCmdInput.Text = "";
         }
 
-        private void tabMain_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void TabMain_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (e.AddedItems != null && e.AddedItems.Count > 0)
             {
@@ -229,15 +314,15 @@ namespace PoGo.Necrobot.Window
             }
         }
         
-        private void btnDonate_Click(object sender, RoutedEventArgs e)
+        private void BtnDonate_Click(object sender, RoutedEventArgs e)
         {
             Process.Start("http://snipe.necrobot2.com?donate");
         }
 
-        private void btnSwitchAcount_Click(object sender, RoutedEventArgs e)
+        private void BtnSwitchAcount_Click(object sender, RoutedEventArgs e)
         {
             var btn = ((Button)sender);
-            var account = (MultiAccountManager.BotAccount)btn.CommandParameter ;
+            var account = (MultiAccountManager.BotAccount)btn.CommandParameter;
 
             var manager = TinyIoCContainer.Current.Resolve<MultiAccountManager>();
 
@@ -260,7 +345,7 @@ namespace PoGo.Necrobot.Window
                     var feed = SyndicationFeed.Load(XmlReader.Create(new StringReader(xml)));
                     lastTimeLoadHelp = DateTime.Now;
 
-                    this.Dispatcher.Invoke(() =>
+                    Dispatcher.Invoke(() =>
                     {
                         lsvHelps.ItemsSource = feed.Items.OrderByDescending(x => x.PublishDate);
                     });
@@ -283,15 +368,63 @@ namespace PoGo.Necrobot.Window
             popHelpArticles.IsOpen = false;
         }
 
-        private void btnExit_Click(object sender, RoutedEventArgs e)
+        private void BtnExit_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.Shutdown();
         }
         
         private void MetroWindow_Initialized(object sender, EventArgs e)
         {
-            if(System.Windows.SystemParameters.PrimaryScreenWidth<1366)
-            this.WindowState = WindowState.Maximized;
+            if(SystemParameters.PrimaryScreenWidth<1366)
+                WindowState = WindowState.Maximized;
+        }
+
+        private void BrowserToggle_Click(object sender, RoutedEventArgs e)
+        {
+            var translator = TinyIoCContainer.Current.Resolve<UITranslation>();
+
+            if (Settings.Default.BrowserToggled)
+            {
+                if (tabBrowser.IsSelected)
+                    tabConsole.IsSelected = true;
+
+                tabBrowser.IsEnabled = false;
+                browserMenuText.Text = translator.EnableHub;
+                Settings.Default.BrowserToggled = false;
+                Settings.Default.Save();
+
+                MessageBoxResult msgbox = MessageBox.Show("Would you Like to Restart to kill unneccesary browser tasks and free up extra cpu?","Free Up CPU",MessageBoxButton.YesNo,MessageBoxImage.Question);
+                if (msgbox == MessageBoxResult.Yes)
+                {
+                    Process.Start(Application.ResourceAssembly.Location);
+                    Application.Current.Shutdown();
+                }
+                else
+                { }
+            }
+            else if (!Settings.Default.BrowserToggled)
+            {
+                tabBrowser.IsEnabled = true;
+                browserMenuText.Text = translator.DisableHub;
+                Settings.Default.BrowserToggled = true;
+                Settings.Default.Save();
+            }
+        }
+        public void ReInitializeSession(ISession session, GlobalSettings globalSettings, BotAccount requestedAccount = null)
+        {
+            if (session.LogicSettings.MultipleBotConfig.StartFromDefaultLocation)
+            {
+                session.ReInitSessionWithNextBot(requestedAccount, globalSettings.LocationConfig.DefaultLatitude, globalSettings.LocationConfig.DefaultLongitude, session.Client.CurrentAltitude);
+            }
+            else
+            {
+                session.ReInitSessionWithNextBot(); //current location
+            }
+        }
+
+        private void MetroWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            Process.GetCurrentProcess().Kill();
         }
     }
 }

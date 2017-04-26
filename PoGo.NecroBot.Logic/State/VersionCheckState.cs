@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Media;
-using System.Net;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -14,9 +13,7 @@ using System.Windows.Forms;
 using Newtonsoft.Json.Linq;
 using PoGo.NecroBot.Logic.Common;
 using PoGo.NecroBot.Logic.Event;
-using PoGo.NecroBot.Logic.Event.UI;
 using PoGo.NecroBot.Logic.Logging;
-using PoGo.NecroBot.Logic.Utils;
 using PoGo.NecroBot.Logic.Forms;
 using System.Net.Http;
 
@@ -31,6 +28,9 @@ namespace PoGo.NecroBot.Logic.State
 
         public const string LatestReleaseApi =
             "https://api.github.com/repos/Necrobot-Private/NecroBot/releases/latest";
+
+        public const string RemoteReleaseUrl =
+            "https://bintray.com/necrobot-private/NecroBot2/download_file?file_path=";
 
         public static Version RemoteVersion;
 
@@ -64,13 +64,14 @@ namespace PoGo.NecroBot.Logic.State
             }
 
             SystemSounds.Asterisk.Play();
-
+            
             var remoteReleaseUrl =
                 $"https://github.com/Necrobot-Private/NecroBot/releases/download/v{RemoteVersion}/";
-            string zipName = "NecroBot2.Console.zip";
+            
+            string zipName = $"NecroBot2.Console.{RemoteVersion.ToString()}.zip";
             if (Assembly.GetEntryAssembly().FullName.ToLower().Contains("necrobot2.win"))
             {
-                zipName = "NecroBot2.Win.zip";
+                zipName = $"NecroBot2.WIN.{RemoteVersion.ToString()}.zip";
             }
             var downloadLink = remoteReleaseUrl + zipName;
 

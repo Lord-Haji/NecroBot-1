@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -14,9 +10,8 @@ namespace PoGo.Necrobot.Window.Converters
         public object Convert(object value, Type targetType,
             object parameter, System.Globalization.CultureInfo culture)
         {
-            if (value is BitmapSource)
+            if (value is BitmapSource orgBmp)
             {
-                BitmapSource orgBmp = (BitmapSource)value;
                 if (orgBmp.Format == PixelFormats.Bgra32)
                 {
                     byte[] orgPixels = new byte[orgBmp.PixelHeight *

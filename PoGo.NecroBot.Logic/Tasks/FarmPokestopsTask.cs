@@ -7,7 +7,7 @@ using PoGo.NecroBot.Logic.Logging;
 using PoGo.NecroBot.Logic.Model;
 using PoGo.NecroBot.Logic.State;
 using PoGo.NecroBot.Logic.Utils;
-using System.Device.Location;
+using GeoCoordinatePortable;
 
 #endregion
 
@@ -39,7 +39,7 @@ namespace PoGo.NecroBot.Logic.Tasks
 
                 var defaultLocation = new MapLocation(session.Settings.DefaultLatitude,
                     session.Settings.DefaultLongitude,
-                    await LocationUtils.getElevation(session.ElevationService, session.Settings.DefaultLatitude,
+                    await LocationUtils.GetElevation(session.ElevationService, session.Settings.DefaultLatitude,
                         session.Settings.DefaultLongitude).ConfigureAwait(false)
                 );
 

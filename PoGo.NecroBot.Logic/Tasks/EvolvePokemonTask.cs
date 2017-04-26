@@ -88,7 +88,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                     }
                     else
                     {
-                        if (await shouldUseLuckyEgg(session, pokemonToEvolve).ConfigureAwait(false))
+                        if (await ShouldUseLuckyEgg(session, pokemonToEvolve).ConfigureAwait(false))
                         {
                             await UseLuckyEgg(session).ConfigureAwait(false);
                         }
@@ -98,7 +98,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                 else if (session.LogicSettings.EvolveAllPokemonWithEnoughCandy ||
                          session.LogicSettings.EvolveAllPokemonAboveIv)
                 {
-                    if (await shouldUseLuckyEgg(session, pokemonToEvolve).ConfigureAwait(false))
+                    if (await ShouldUseLuckyEgg(session, pokemonToEvolve).ConfigureAwait(false))
                     {
                         await UseLuckyEgg(session).ConfigureAwait(false);
                     }
@@ -130,7 +130,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                 if (luckyEgg != null) session.EventDispatcher.Send(new UseLuckyEggEvent { Count = luckyEgg.Count });
                 TinyIoCContainer.Current.Resolve<MultiAccountManager>().DisableSwitchAccountUntil(DateTime.Now.AddMinutes(30));
             }
-            DelayingUtils.Delay(session.LogicSettings.DelayBetweenPlayerActions, 0);
+            await DelayingUtils.DelayAsync(session.LogicSettings.DelayBetweenPlayerActions, 0, session.CancellationTokenSource.Token).ConfigureAwait(false);
         }
 
         public static async Task<ItemId> GetRequireEvolveItem(ISession session, PokemonId from, PokemonId to)
@@ -168,7 +168,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                         }
 
                         if (!pokemonToEvolve.Last().Equals(pokemon))
-                            DelayingUtils.Delay(session.LogicSettings.EvolveActionDelay, 0);
+                            await DelayingUtils.DelayAsync(session.LogicSettings.EvolveActionDelay, 0, session.CancellationTokenSource.Token).ConfigureAwait(false);
                     }
                     catch
                     {
@@ -178,7 +178,7 @@ namespace PoGo.NecroBot.Logic.Tasks
             }
         }
 
-        private static async Task<bool> shouldUseLuckyEgg(ISession session, List<PokemonData> pokemonToEvolve)
+        private static async Task<bool> ShouldUseLuckyEgg(ISession session, List<PokemonData> pokemonToEvolve)
         {
             var inventoryContent = await session.Inventory.GetItems().ConfigureAwait(false);
 

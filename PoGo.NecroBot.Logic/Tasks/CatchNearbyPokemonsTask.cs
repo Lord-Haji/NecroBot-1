@@ -16,7 +16,7 @@ using POGOProtos.Map.Pokemon;
 using POGOProtos.Networking.Responses;
 using TinyIoC;
 using System.Collections.Generic;
-using System.Device.Location;
+using GeoCoordinatePortable;
 
 #endregion
 
@@ -122,9 +122,7 @@ namespace PoGo.NecroBot.Logic.Tasks
                 var ultraBallsCount = allitems.FirstOrDefault(i => i.ItemId == ItemId.ItemUltraBall)?.Count;
                 var masterBallsCount = allitems.FirstOrDefault(i => i.ItemId == ItemId.ItemMasterBall)?.Count;
                 masterBallsCount =
-                    masterBallsCount == null
-                        ? 0
-                        : masterBallsCount; //return null ATM. need this code to logic check work
+                    masterBallsCount ?? 0; //return null ATM. need this code to logic check work
 
                 if (pokeBallsCount + greatBallsCount + ultraBallsCount + masterBallsCount <
                     session.LogicSettings.PokeballsToKeepForSnipe && session.CatchBlockTime < DateTime.Now)

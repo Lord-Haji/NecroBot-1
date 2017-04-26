@@ -1,8 +1,10 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/g1dtrcdnjjbxugw6?svg=true)](https://ci.appveyor.com/project/jjskuld/necrobot/branch/master)
 [![Github All Releases](https://img.shields.io/github/downloads/Necrobot-Private/NecroBot/total.svg?maxAge=258)](https://github.com/Necrobot-Private/NecroBot/releases)
 [![GitHub license](https://img.shields.io/badge/license-AGPL-blue.svg)](https://raw.githubusercontent.com/Necrobot-Private/NecroBot/master/LICENSE.md)
+<br />
+[![Download Latest Version](https://img.shields.io/badge/Download-1.0.056-yellowgreen.svg) ](https://github.com/Necrobot-Private/NecroBot/releases/tag/v1.0.0.156)
 
-<h1>Necrobot2 is now compatible with 0.57.4 API.</h1>
+<h1>Necrobot2 is now compatible with 0.61.0 API.</h1>
 
 <p>
 Necrobot2 itself is free but now you will need to purchase an API key from Bossland in order to run the bot.
@@ -39,6 +41,32 @@ See https://talk.pogodev.org/d/51-api-hashing-service-by-pokefarmer for pricing 
 Please visit our website [http://necrobot2.com](http://necrobot2.com) to find some tips for setup and running.
 
 <br/>
+
+## Developers and Contributors
+
+### Requirements
+
+To contribute to development, you will need to download and install the required software first.
+
+- [Git](https://git-scm.com/downloads)
+- [Visual Studio 2017](https://www.visualstudio.com/vs/whatsnew/) - We are using C# 7.0 code so VS 2017 is required to compile.  VS 2015 or older will not be able to compile the code.
+- [.NET 4.6.2 SDK](https://www.microsoft.com/en-us/download/details.aspx?id=53321)
+
+### Cloning Source Code
+
+Next, you need to get the source code.  This source code repository uses git submodules. So when you clone the source code, you will need to clone recursively:
+
+```
+git clone --recursive https://github.com/Necrobot-Private/NecroBot.git
+```
+
+Or if you already cloned without the recursive option, you can update the submodules by running:
+
+```
+git clone --recursive https://github.com/Necrobot-Private/NecroBot.git
+cd NecroBot
+git submodule update --init --recursive
+```
 
 ## Third Party Dependencies
 

@@ -5,15 +5,12 @@ using PoGo.NecroBot.Logic.Event.Inventory;
 using PoGo.NecroBot.Logic.Event.Player;
 using PoGo.NecroBot.Logic.Event.Snipe;
 using PoGo.NecroBot.Logic.Event.UI;
-using PoGo.NecroBot.Logic.State;
 using POGOProtos.Inventory.Item;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using TinyIoC;
 
 namespace PoGo.Necrobot.Window
 {
@@ -34,36 +31,36 @@ namespace PoGo.Necrobot.Window
         }
         public void OnBotEvent(FavoriteEvent ev)
         {
-            this.datacontext.PokemonList.OnFavorited(ev);
+            datacontext.PokemonList.OnFavorited(ev);
         }
         public void OnBotEvent(BotSwitchedEvent ex)
         {
             //this.botMap.Reset();
-            this.datacontext.Reset();
-            this.popSwithAccount.IsOpen = true;
+            datacontext.Reset();
+            popSwithAccount.IsOpen = true;
             //show popup...
         }
         public void OnBotEvent(FinishUpgradeEvent e)
         {
-            this.datacontext.PokemonList.OnUpgradeEnd(e);
+            datacontext.PokemonList.OnUpgradeEnd(e);
         }
         public void OnBotEvent(UpgradePokemonEvent e)
         {
-            this.datacontext.PokemonList.OnUpgraded(e);
+            datacontext.PokemonList.OnUpgraded(e);
         }
         public void OnBotEvent(PokemonEvolveEvent ev)
         {
-            this.datacontext.PokemonList.OnEvolved(ev);
+            datacontext.PokemonList.OnEvolved(ev);
         }
         public void OnBotEvent(PokemonCaptureEvent capture)
         {
-            this.datacontext.Sidebar.AddOrUpdate(new CatchPokemonViewModel(capture));
+            datacontext.Sidebar.AddOrUpdate(new CatchPokemonViewModel(capture));
         }
         public void OnBotEvent(LoginEvent ev)
         {
-            this.Dispatcher.Invoke(() =>
+            Dispatcher.Invoke(() =>
             {
-                this.datacontext.Reset();
+                datacontext.Reset();
 
                 lblAccount.Content = currentSession.Translation.GetTranslation(NecroBot.Logic.Common.TranslationString.LoggingIn, ev.AuthType, ev.Username);
             });
@@ -90,44 +87,42 @@ namespace PoGo.Necrobot.Window
             datacontext.PlayerInfo.OnInventoryRefreshed(inventory);
             datacontext.EggsList.OnInventoryRefreshed(inventory);
 
+            datacontext.MaxPokemonStorage = maxPokemonStorage.Value;
+            datacontext.RaisePropertyChanged("MaxPokemonStorage");
+
             var items = inventory.Select(x => x.InventoryItemData?.Item).Where(x => x != null).ToList();
-            this.datacontext.MaxItemStorage = maxItemStorage.Value;
-            this.datacontext.RaisePropertyChanged("MaxItemStorage");
+            datacontext.MaxItemStorage = maxItemStorage.Value;
+            datacontext.RaisePropertyChanged("MaxItemStorage");
 
-            this.datacontext.ItemsList.Update(items);
-            this.datacontext.RaisePropertyChanged("ItemsTabHeader");
+            datacontext.ItemsList.Update(items);
+            datacontext.RaisePropertyChanged("ItemsTabHeader");
 
-            this.datacontext.PokemonList.Update(pokemons);
-            this.datacontext.RaisePropertyChanged("PokemonTabHeader");
-
-            UIUpdateSafe(() =>
-             {
-                 tabPokemons.Header = $"   Pokemons ({this.datacontext.Pokemons.Count}/{maxPokemonStorage})   ";
-             });
+            datacontext.PokemonList.Update(pokemons);
+            datacontext.RaisePropertyChanged("PokemonTabHeader");
         }
 
         public void OnBotEvent(InventoryItemUpdateEvent e)
         {
-            this.datacontext.ItemsList.Update(new List<ItemData> { e.Item });
-            this.datacontext.RaisePropertyChanged("ItemsTabHeader");
+            datacontext.ItemsList.Update(new List<ItemData> { e.Item });
+            datacontext.RaisePropertyChanged("ItemsTabHeader");
         }
 
         public void OnBotEvent(EncounteredEvent e)
         {
-            this.datacontext.SnipeList.OnSnipeData(e);
-            this.botMap.HandleEncounterEvent(e);
+            datacontext.SnipeList.OnSnipeData(e);
+            botMap.HandleEncounterEvent(e);
         }
 
         public void OnBotEvent(LoggedEvent userLogged)
         {
-            this.datacontext.UI.PlayerStatus = "Playing";
-            this.datacontext.UI.PlayerName = userLogged.Profile.PlayerData.Username;
-            this.datacontext.RaisePropertyChanged("UI");
+            datacontext.UI.PlayerStatus = "Playing";
+            datacontext.UI.PlayerName = userLogged.Profile.PlayerData.Username;
+            datacontext.RaisePropertyChanged("UI");
 
-            this.Dispatcher.Invoke(() =>
+            Dispatcher.Invoke(() =>
             {
-                this.popSwithAccount.IsOpen = false;
-                lblAccount.Content = $"{this.datacontext.UI.PlayerStatus} as : {this.datacontext.UI.PlayerName}";
+                popSwithAccount.IsOpen = false;
+                lblAccount.Content = $"{datacontext.UI.PlayerStatus} as : {datacontext.UI.PlayerName}";
 
             });
         }
@@ -135,23 +130,23 @@ namespace PoGo.Necrobot.Window
         {
             var stats = profile.Stats;
 
-            this.datacontext.PlayerInfo.OnProfileUpdate(profile);
+            datacontext.PlayerInfo.OnProfileUpdate(profile);
 
-            this.datacontext.UI.PlayerStatus = "Playing";
-            this.datacontext.UI.PlayerName = profile.Profile.PlayerData.Username;
+            datacontext.UI.PlayerStatus = "Playing";
+            datacontext.UI.PlayerName = profile.Profile.PlayerData.Username;
 
-            this.datacontext.RaisePropertyChanged("UI");
+            datacontext.RaisePropertyChanged("UI");
 
-            lblAccount.Content = $"{this.datacontext.UI.PlayerStatus} as : {this.datacontext.UI.PlayerName}";
+            lblAccount.Content = $"{datacontext.UI.PlayerStatus} as : {datacontext.UI.PlayerName}";
 
         }
         public void OnBotEvent(RenamePokemonEvent renamePokemonEvent)
         {
-            this.datacontext.PokemonList.OnRename(renamePokemonEvent);
+            datacontext.PokemonList.OnRename(renamePokemonEvent);
         }
         public void OnBotEvent(TransferPokemonEvent transferedPkm)
         {
-            this.datacontext.PokemonList.OnTransfer(transferedPkm);
+            datacontext.PokemonList.OnTransfer(transferedPkm);
         }
         public void OnBotEvent(StatusBarEvent e)
         {
@@ -159,17 +154,17 @@ namespace PoGo.Necrobot.Window
         }
         public void OnBotEvent(FortUsedEvent ev)
         {
-            this.datacontext.Sidebar.AddOrUpdate(new PokestopItemViewModel(ev));
-            this.botMap.MarkFortAsLooted(ev.Fort);
+            datacontext.Sidebar.AddOrUpdate(new PokestopItemViewModel(ev));
+            botMap.MarkFortAsLooted(ev.Fort);
         }
         public void OnBotEvent(PokeStopListEvent ev)
         {
-            this.botMap.OnPokestopEvent(ev);
+            botMap.OnPokestopEvent(ev);
         }
         public void OnBotEvent(UpdatePositionEvent ev)
         {
-            this.botMap.UpdatePlayerPosition(ev.Latitude, ev.Longitude);
-            this.datacontext.PlayerInfo.UpdateSpeed(ev.Speed);
+            botMap.UpdatePlayerPosition(ev.Latitude, ev.Longitude);
+            datacontext.PlayerInfo.UpdateSpeed(ev.Speed);
         }
         public void OnBotEvent(AutoSnipePokemonAddedEvent ev)
         {
@@ -177,11 +172,11 @@ namespace PoGo.Necrobot.Window
         }
         public void OnBotEvent(PokestopLimitUpdate ev)
         {
-            this.datacontext.PlayerInfo.UpdatePokestopLimit(ev);
+            datacontext.PlayerInfo.UpdatePokestopLimit(ev);
         }
         public void OnBotEvent(CatchLimitUpdate ev)
         {
-            this.datacontext.PlayerInfo.UpdateCatchLimit(ev);
+            datacontext.PlayerInfo.UpdateCatchLimit(ev);
         }
 
         public void OnBotEvent(ErrorEvent ev)
@@ -202,7 +197,7 @@ namespace PoGo.Necrobot.Window
 
             Task.Run(() =>
             {
-                this.Dispatcher.Invoke(() =>
+                Dispatcher.Invoke(() =>
                 {
                     try
                     {
